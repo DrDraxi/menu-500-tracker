@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -13,6 +14,22 @@ public sealed partial class Menu500WidgetContent : UserControl
         InitializeComponent();
         HoverBorder.PointerEntered += OnPointerEntered;
         HoverBorder.PointerExited += OnPointerExited;
+
+        // Set initial theme
+        UpdateTheme();
+
+        // Listen for theme changes
+        ActualThemeChanged += (s, e) => UpdateTheme();
+    }
+
+    private void UpdateTheme()
+    {
+        // Dark mode = white text, Light mode = black text
+        var foregroundColor = ActualTheme == ElementTheme.Dark
+            ? Windows.UI.Color.FromArgb(255, 255, 255, 255) // White
+            : Windows.UI.Color.FromArgb(255, 0, 0, 0);       // Black
+
+        WidgetText.Foreground = new SolidColorBrush(foregroundColor);
     }
 
     public void UpdateMenu(DailyMenu menu)
