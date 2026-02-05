@@ -1,20 +1,15 @@
 using System.Globalization;
-using System.Runtime.InteropServices;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Windows.UI;
 using Menu500Tracker.Models;
-using Windows.UI.ViewManagement;
 
 namespace Menu500Tracker.Widget;
 
 public sealed partial class Menu500WidgetContent : UserControl
 {
-    [DllImport("uxtheme.dll", EntryPoint = "#138", SetLastError = true)]
-    private static extern bool ShouldSystemUseDarkMode();
-
-    private readonly UISettings _uiSettings = new();
-
     public Menu500WidgetContent()
     {
         InitializeComponent();
@@ -22,35 +17,16 @@ public sealed partial class Menu500WidgetContent : UserControl
         HoverBorder.PointerExited += OnPointerExited;
 
         // Set initial theme
-        UpdateTheme();
+        UpdateTextColor();
 
-        // Listen for system theme changes
-        _uiSettings.ColorValuesChanged += (sender, args) =>
-        {
-            DispatcherQueue.TryEnqueue(UpdateTheme);
-        };
+        // Listen for theme changes
+        ActualThemeChanged += (s, e) => UpdateTextColor();
     }
 
-    private void UpdateTheme()
+    private void UpdateTextColor()
     {
-        // Use system dark mode (for taskbar) instead of app dark mode
-        bool isDarkMode = false;
-        try
-        {
-            isDarkMode = ShouldSystemUseDarkMode();
-        }
-        catch
-        {
-            // Fallback to UISettings if the undocumented API fails
-            var foreground = _uiSettings.GetColorValue(UIColorType.Foreground);
-            isDarkMode = ((foreground.R + foreground.G + foreground.B) / 3) > 128;
-        }
-
-        // Dark mode = white text, Light mode = black text
-        var textColor = isDarkMode
-            ? Windows.UI.Color.FromArgb(255, 255, 255, 255) // White
-            : Windows.UI.Color.FromArgb(255, 0, 0, 0);       // Black
-
+        // Use WinUI 3's ActualTheme property to detect current theme
+        var textColor = ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black;
         WidgetText.Foreground = new SolidColorBrush(textColor);
     }
 
