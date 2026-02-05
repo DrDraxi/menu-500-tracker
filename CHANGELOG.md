@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Widget text color now adapts to Windows light/dark theme (white in dark mode, black in light mode)
+- Widget text color now adapts to Windows light/dark theme using UISettings API (white in dark mode, black in light mode)
 
 ## [v1.0.0] - 2026-02-03
 
