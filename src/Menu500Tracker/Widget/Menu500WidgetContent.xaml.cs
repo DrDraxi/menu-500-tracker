@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -9,6 +10,9 @@ namespace Menu500Tracker.Widget;
 
 public sealed partial class Menu500WidgetContent : UserControl
 {
+    [DllImport("uxtheme.dll", EntryPoint = "#138", SetLastError = true)]
+    private static extern bool ShouldSystemUseDarkMode();
+
     private readonly UISettings _uiSettings = new();
 
     public Menu500WidgetContent()
@@ -29,10 +33,18 @@ public sealed partial class Menu500WidgetContent : UserControl
 
     private void UpdateTheme()
     {
-        // Check if Windows is in dark mode by looking at the foreground color
-        // Dark mode = light foreground color
-        var foreground = _uiSettings.GetColorValue(UIColorType.Foreground);
-        bool isDarkMode = ((foreground.R + foreground.G + foreground.B) / 3) > 128;
+        // Use system dark mode (for taskbar) instead of app dark mode
+        bool isDarkMode = false;
+        try
+        {
+            isDarkMode = ShouldSystemUseDarkMode();
+        }
+        catch
+        {
+            // Fallback to UISettings if the undocumented API fails
+            var foreground = _uiSettings.GetColorValue(UIColorType.Foreground);
+            isDarkMode = ((foreground.R + foreground.G + foreground.B) / 3) > 128;
+        }
 
         // Dark mode = white text, Light mode = black text
         var textColor = isDarkMode
