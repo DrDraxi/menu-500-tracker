@@ -1,7 +1,6 @@
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using Menu500Tracker.Models;
-using Microsoft.UI.Dispatching;
 
 namespace Menu500Tracker.Services;
 
@@ -20,7 +19,7 @@ public class MenuFetchService : IDisposable
     };
 
     private readonly HttpClient _httpClient;
-    private DispatcherQueueTimer? _timer;
+    private Timer? _timer;
     private bool _disposed;
 
     public event EventHandler<DailyMenu>? MenuUpdated;
@@ -35,18 +34,8 @@ public class MenuFetchService : IDisposable
 
     public void Start()
     {
-        // Fetch immediately
-        _ = FetchMenuAsync();
-
-        // Setup hourly refresh timer
-        var dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-        if (dispatcherQueue != null)
-        {
-            _timer = dispatcherQueue.CreateTimer();
-            _timer.Interval = RefreshInterval;
-            _timer.Tick += async (s, e) => await FetchMenuAsync();
-            _timer.Start();
-        }
+        // Fetch immediately, then repeat hourly
+        _timer = new Timer(_ => _ = FetchMenuAsync(), null, TimeSpan.Zero, RefreshInterval);
     }
 
     public async Task FetchMenuAsync()
@@ -174,7 +163,7 @@ public class MenuFetchService : IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        _timer?.Stop();
+        _timer?.Dispose();
         _httpClient.Dispose();
     }
 }

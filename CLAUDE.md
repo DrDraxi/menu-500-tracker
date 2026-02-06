@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Menu 500 Tracker is a Windows taskbar widget that displays "500" and shows today's daily menu from Restaurant 500 (500restaurant.cz) in a tooltip on hover. The menu is fetched hourly from the restaurant's website.
+Menu 500 Tracker is a Windows taskbar widget that displays "500" and shows today's daily menu from Restaurant 500 (500restaurant.cz) in a tooltip on hover. The menu is fetched hourly from the restaurant's website. Uses pure Win32 GDI for rendering (no WinUI/XAML framework).
 
 ## Build Commands
 
@@ -19,14 +19,14 @@ dotnet build --configuration Release -p:Platform=x64
 dotnet run --project src/Menu500Tracker/Menu500Tracker.csproj -p:Platform=x64
 
 # Publish single-file exe (x64)
-dotnet publish src/Menu500Tracker/Menu500Tracker.csproj --configuration Release --runtime win-x64 --self-contained true -p:Platform=x64 -p:PublishSingleFile=true -p:WindowsPackageType=None -o publish
+dotnet publish src/Menu500Tracker/Menu500Tracker.csproj --configuration Release --runtime win-x64 --self-contained true -p:Platform=x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -o publish
 ```
 
 ## Architecture
 
 ### Solution Structure
 
-- **Menu500Tracker** (`src/Menu500Tracker/`) - WinUI 3 app with taskbar widget
+- **Menu500Tracker** (`src/Menu500Tracker/`) - Win32 GDI app with taskbar widget
 - **TaskbarWidget** (`lib/taskbar-widget/`) - Git submodule for taskbar widget injection
 
 After cloning, initialize the submodule:
@@ -38,30 +38,28 @@ git submodule update --init --recursive
 
 ```
 src/Menu500Tracker/
-├── Program.cs              # Entry point with ComWrappers init
-├── App.xaml.cs             # Creates widget and menu service
-├── MainWindow.xaml.cs      # Hidden window (WinUI lifecycle requirement)
+├── Program.cs              # Entry point with Win32 message loop
 ├── Widget/
-│   ├── Menu500Widget.cs           # Injection orchestrator
-│   └── Menu500WidgetContent.xaml  # Visual UI showing "500" text
+│   └── Menu500Widget.cs    # GDI rendering, tooltip, hover handling
 ├── Services/
-│   └── MenuFetchService.cs        # HTTP fetch and HTML parsing
+│   └── MenuFetchService.cs # HTTP fetch and HTML parsing
 └── Models/
-    └── DailyMenu.cs               # Menu data model
+    └── DailyMenu.cs        # Menu data model
 ```
 
 ### Widget System
 
 The widget uses `TaskbarInjectionHelper` from the submodule:
-1. Creates a host window with `DeferInjection=true`
-2. Sets up `DesktopWindowXamlSource` for WinUI content
-3. Injects into taskbar after XAML setup
-4. Displays "500" with tooltip showing today's menu
+1. Creates a host window with custom WndProc and `DeferInjection=true`
+2. Renders "500" text via GDI (`WM_PAINT` handler with `CreateFontW`/`DrawTextW`)
+3. Creates a Win32 tooltip (`TOOLTIPS_CLASS`) for menu display
+4. Handles hover with `TrackMouseEvent`/`WM_MOUSELEAVE`
+5. Detects theme via `ShouldSystemUseDarkMode()` for text/background colors
 
 ### Menu Fetching
 
 - **URL**: https://www.500restaurant.cz/denni-menu/
-- **Refresh interval**: 1 hour
+- **Refresh interval**: 1 hour (via `System.Threading.Timer`)
 - **Parsing**: Finds `<h4>` with Czech day name, extracts following `<p>` elements
 - **Czech days**: pondělí, úterý, středa, čtvrtek, pátek
 
@@ -74,9 +72,10 @@ The widget uses `TaskbarInjectionHelper` from the submodule:
 
 ## Gotchas
 
-- **Platform required**: WinUI 3 requires explicit platform. Use `-p:Platform=x64` for all commands.
-- **Hidden MainWindow**: Don't call `Activate()` on MainWindow - it must stay hidden for widget-only mode.
+- **Platform required**: Use `-p:Platform=x64` for all build commands.
 - **Submodule**: Must initialize submodule before building.
+- **WndProc delegate**: Must keep a reference to the WndProc delegate to prevent GC collection (stored as field in Menu500Widget).
+- **Theme detection**: `ShouldSystemUseDarkMode()` is an undocumented uxtheme.dll export (#138). Wrapped in try/catch.
 
 ## Releases
 

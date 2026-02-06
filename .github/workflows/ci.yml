@@ -49,8 +49,7 @@ jobs:
             --self-contained true `
             -p:Platform=${{ env.PLATFORM }} `
             -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true `
-            -p:WindowsPackageType=None `
+            -p:PublishTrimmed=true `
             -p:Version=${{ steps.version.outputs.VERSION }} `
             -o publish/${{ env.RID }}
 
