@@ -47,13 +47,11 @@ public static class StartupService
     }
 
     /// <summary>
-    /// Ensures startup is enabled. Call this on app startup.
+    /// Ensures startup is enabled with the current exe path. Call this on app startup.
+    /// Always writes the path to handle the app being moved to a new location.
     /// </summary>
     public static void EnsureStartupEnabled()
     {
-        if (!IsStartupEnabled())
-        {
-            SetStartupEnabled(true);
-        }
+        SetStartupEnabled(true);
     }
 }
