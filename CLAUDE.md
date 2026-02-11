@@ -38,23 +38,39 @@ git submodule update --init --recursive
 
 ```
 src/Menu500Tracker/
-├── Program.cs              # Entry point with Win32 message loop
+├── Program.cs              # Entry point, calls Widget.RunMessageLoop()
 ├── Widget/
-│   └── Menu500Widget.cs    # GDI rendering, tooltip, hover handling
+│   └── Menu500Widget.cs    # ~70 lines, uses TaskbarWidget.Widget API
 ├── Services/
 │   └── MenuFetchService.cs # HTTP fetch and HTML parsing
 └── Models/
     └── DailyMenu.cs        # Menu data model
 ```
 
+### Widget Toolkit (lib/taskbar-widget/)
+
+The submodule is an immediate-mode Win32 GDI widget toolkit. Key files:
+
+```
+lib/taskbar-widget/src/TaskbarWidget/
+├── Widget.cs                # Main entry point, orchestrates everything
+├── WidgetOptions.cs         # Configuration
+├── Color.cs                 # RGBA color struct
+├── Rendering/               # RenderContext, layout engine, GDI renderer
+├── Theming/                 # Dark/light theme detection
+├── Interaction/             # Mouse tracking, tooltips, drop target
+├── Ordering/                # Cross-process widget ordering
+└── Timing/                  # SetInterval/SetTimeout via Win32 timers
+```
+
 ### Widget System
 
-The widget uses `TaskbarInjectionHelper` from the submodule:
-1. Creates a host window with custom WndProc and `DeferInjection=true`
-2. Renders "500" text via GDI (`WM_PAINT` handler with `CreateFontW`/`DrawTextW`)
-3. Creates a Win32 tooltip (`TOOLTIPS_CLASS`) for menu display
-4. Handles hover with `TrackMouseEvent`/`WM_MOUSELEAVE`
-5. Detects theme via `ShouldSystemUseDarkMode()` for text/background colors
+Menu500Widget uses the high-level `Widget` API:
+1. Creates `new Widget("Menu500", render: ctx => { ... })` with a render callback
+2. Render callback draws "500" text and sets tooltip content
+3. `widget.Show()` handles injection, positioning, and rendering
+4. `Widget.RunMessageLoop()` runs the Win32 message loop
+5. `widget.Invalidate()` triggers re-render when menu data updates
 
 ### Menu Fetching
 
@@ -74,8 +90,9 @@ The widget uses `TaskbarInjectionHelper` from the submodule:
 
 - **Platform required**: Use `-p:Platform=x64` for all build commands.
 - **Submodule**: Must initialize submodule before building.
-- **WndProc delegate**: Must keep a reference to the WndProc delegate to prevent GC collection (stored as field in Menu500Widget).
-- **Theme detection**: `ShouldSystemUseDarkMode()` is an undocumented uxtheme.dll export (#138). Wrapped in try/catch.
+- **WndProc delegate**: The Widget class keeps a reference to its WndProc delegate to prevent GC collection.
+- **Theme detection**: `ShouldSystemUseDarkMode()` is an undocumented uxtheme.dll export (#138). Wrapped in try/catch in ThemeDetector.
+- **Namespace conflict**: In Menu500Tracker, use `TaskbarWidget.Widget.RunMessageLoop()` (fully qualified) because `Widget` also matches the local `Menu500Tracker.Widget` namespace.
 
 ## Releases
 

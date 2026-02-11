@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.1.0] - 2026-02-12
+
+### Added
+- Drag-to-reorder widgets — click and drag any widget to change its position
+- Live preview during drag — other widgets slide in real-time to show the new order
+- Atomic widget repositioning — widgets push neighbors aside when resizing
+
+### Changed
+- Migrated from manual Win32 rendering to high-level `TaskbarWidget.Widget` API
+- Widget code reduced from ~500 lines to ~70 lines
+- Tooltip, hover, and theme handling now delegated to the widget toolkit
+
+### Removed
+- Unused `EditModeWidget` (replaced by direct drag-to-reorder)
+
 ## [v2.0.1] - 2026-02-11
 
 ### Fixed

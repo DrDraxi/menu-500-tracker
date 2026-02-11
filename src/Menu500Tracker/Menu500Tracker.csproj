@@ -9,7 +9,6 @@
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>full</TrimMode>
   </PropertyGroup>

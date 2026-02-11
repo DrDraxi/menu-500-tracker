@@ -22,15 +22,6 @@ public static class Program
 
         try
         {
-            // Initialize common controls (required for tooltips)
-            var icc = new Native.INITCOMMONCONTROLSEX
-            {
-                dwSize = System.Runtime.InteropServices.Marshal.SizeOf<Native.INITCOMMONCONTROLSEX>(),
-                dwICC = Native.ICC_WIN95_CLASSES
-            };
-            var iccResult = Native.InitCommonControlsEx(ref icc);
-            Log($"InitCommonControlsEx: {iccResult}");
-
             // Ensure app starts with Windows
             StartupService.EnsureStartupEnabled();
 
@@ -40,13 +31,7 @@ public static class Program
             menuService.Start();
 
             Log("Entering message loop");
-
-            // Win32 message loop
-            while (Native.GetMessageW(out var msg, IntPtr.Zero, 0, 0))
-            {
-                Native.TranslateMessage(ref msg);
-                Native.DispatchMessageW(ref msg);
-            }
+            TaskbarWidget.Widget.RunMessageLoop();
 
             Log("Message loop exited");
             widget.Dispose();
