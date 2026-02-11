@@ -31,6 +31,9 @@ public static class Program
             var iccResult = Native.InitCommonControlsEx(ref icc);
             Log($"InitCommonControlsEx: {iccResult}");
 
+            // Ensure app starts with Windows
+            StartupService.EnsureStartupEnabled();
+
             var menuService = new MenuFetchService();
             var widget = new Menu500Widget(menuService, Log);
             widget.Initialize();
