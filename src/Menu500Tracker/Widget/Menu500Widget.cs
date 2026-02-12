@@ -34,7 +34,7 @@ public class Menu500Widget : IDisposable
 
         _widget = new TaskbarWidget.Widget("Menu500", render: ctx =>
         {
-            ctx.DrawText(DisplayText, new TextStyle { FontSizeDip = 14, FontWeight = 600 });
+            ctx.DrawText(DisplayText, new TextStyle { FontSizeDip = 14, FontWeight = 400 });
             ctx.Tooltip(_tooltipTitle, _tooltipBody);
         }, new WidgetOptions { Log = _log });
 
