@@ -42,7 +42,8 @@ src/Menu500Tracker/
 ├── Widget/
 │   └── Menu500Widget.cs    # ~70 lines, uses TaskbarWidget.Widget API
 ├── Services/
-│   └── MenuFetchService.cs # HTTP fetch and HTML parsing
+│   ├── MenuFetchService.cs # HTTP fetch and HTML parsing
+│   └── StartupService.cs   # Windows startup registry
 └── Models/
     └── DailyMenu.cs        # Menu data model
 ```
